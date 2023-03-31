@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <ctype.h>
+#include <string.h>
 #include <stdlib.h>
 
 typedef enum {
@@ -101,6 +102,12 @@ void initializeTestBoard(GameState *state) {
   state->board[0][0].type = ROOK;
   state->board[0][0].color = BLACK;
 
+  state->board[0][1].type = BISHOP;
+  state->board[0][1].color = BLACK;
+
+  state->board[0][2].type = KNIGHT;
+  state->board[0][2].color = BLACK;
+
   state->whiteToMove = 1;
   state->whiteKingPos[0] = 7;
   state->whiteKingPos[1] = 3;
@@ -125,14 +132,15 @@ int parseMove(char *move, Move *moveStruct) {
   return 1;
 }
 
-Piece checkTileForPiece(GameState *state, int fromRank, int fromFile, int verOffset, int horOffset) {
-  if (state->board[fromRank + verOffset][fromFile + horOffset].type != EMPTY) {
-    return state->board[fromRank + verOffset][fromFile + horOffset];
-  } else if (fromRank + verOffset > 8 || fromRank + verOffset <= 0 ||
-             fromFile + horOffset > 8 || fromFile + horOffset <= 0) {
+Piece checkTileForPiece(GameState *state, int fromRank, int fromFile, int verOffset, int horOffset, int verLim, int horLim) {
+  if (fromRank + verOffset >= 8 || fromRank + verOffset < 0 ||
+      fromFile + horOffset >= 8 || fromFile + horOffset < 0 ||
+      fromRank + verOffset == verLim || fromFile + horOffset == horLim) {
     return EMPTY_PIECE;
+  } else if (state->board[fromRank + verOffset][fromFile + horOffset].type != EMPTY) {
+    return state->board[fromRank + verOffset][fromFile + horOffset];
   } else {
-    checkTileForPiece(state, fromRank + verOffset, fromFile + horOffset, verOffset, horOffset);
+    return checkTileForPiece(state, fromRank + verOffset, fromFile + horOffset, verOffset, horOffset, verLim, horLim);
   }
 }
 
@@ -227,42 +235,42 @@ int isCheck(GameState *oldState, Move *move, Piece *oldPiece) {
     }
   }
 
-  Piece vPosRook = checkTileForPiece(&state, checkRank + 1, checkFile, 1, 0);
+  Piece vPosRook = checkTileForPiece(&state, checkRank, checkFile, 1, 0, 0, 0);
   if ((vPosRook.type == ROOK || vPosRook.type == QUEEN) && vPosRook.color == oppositeColor) {
     return 1;
   }
 
-  Piece vNegRook = checkTileForPiece(&state, checkRank - 1, checkFile, -1, 0);
+  Piece vNegRook = checkTileForPiece(&state, checkRank, checkFile, -1, 0 , 0, 0);
   if ((vNegRook.type == ROOK || vNegRook.type == QUEEN) && vNegRook.color == oppositeColor) {
     return 1;
   }
 
-  Piece hPosRook = checkTileForPiece(&state, checkRank, checkFile + 1, 0, 1);
+  Piece hPosRook = checkTileForPiece(&state, checkRank, checkFile, 0, 1, 0, 0);
   if ((hPosRook.type == ROOK || hPosRook.type == QUEEN) && hPosRook.color == oppositeColor) {
     return 1;
   }
 
-  Piece hNegRook = checkTileForPiece(&state, checkRank, checkFile - 1, 0, -1);
+  Piece hNegRook = checkTileForPiece(&state, checkRank, checkFile, 0, -1, 0, 0);
   if ((hNegRook.type == ROOK || hNegRook.type == QUEEN) && hNegRook.color == oppositeColor) {
     return 1;
   }
 
-  Piece vPosBishop = checkTileForPiece(&state, checkRank + 1, checkFile + 1, 1, 1);
+  Piece vPosBishop = checkTileForPiece(&state, checkRank, checkFile, 1, 1, 0, 0);
   if ((vPosBishop.type == BISHOP || vPosBishop.type == QUEEN) && vPosBishop.color == oppositeColor) {
     return 1;
   }
 
-  Piece vNegBishop = checkTileForPiece(&state, checkRank - 1, checkFile - 1, -1, -1);
+  Piece vNegBishop = checkTileForPiece(&state, checkRank, checkFile, -1, -1, 0, 0);
   if ((vNegBishop.type == BISHOP || vNegBishop.type == QUEEN) && vNegBishop.color == oppositeColor) {
     return 1;
   }
 
-  Piece hPosBishop = checkTileForPiece(&state, checkRank - 1, checkFile + 1, -1, 1);
+  Piece hPosBishop = checkTileForPiece(&state, checkRank, checkFile, -1, 1, 0, 0);
   if ((hPosBishop.type == BISHOP || hPosBishop.type == QUEEN) && hPosBishop.color == oppositeColor) {
     return 1;
   }
 
-  Piece hNegBishop = checkTileForPiece(&state, checkRank + 1, checkFile - 1, 1, -1);
+  Piece hNegBishop = checkTileForPiece(&state, checkRank, checkFile, 1, -1, 0, 0);
   if ((hNegBishop.type == BISHOP || hNegBishop.type == QUEEN) && hNegBishop.color == oppositeColor) {
     return 1;
   }
@@ -272,7 +280,12 @@ int isCheck(GameState *oldState, Move *move, Piece *oldPiece) {
     {2, -1}, {1, -2}, {-1, -2}, {-2, -1},
   };
 
-  // only knights left
+  for (int i = 0; i < 8; i++) {
+    Piece knight = state.board[checkRank + knightOffsets[i][0]][checkFile  + knightOffsets[i][1]];
+    if (knight.type == KNIGHT && knight.color == oppositeColor) {
+      return 1;
+    }
+  }
 
 	return 0;
 }
@@ -283,29 +296,29 @@ int isLegalRookMove(GameState *state, Move *move) {
     return 0;
   }
 
-  int offset = 1, vertical = fromFile - toFile == 0 ? 1 : 0;
+  int vertical = fromFile - toFile == 0 ? 1 : 0;
+
+  int verOffset = 0, horOffset = 0;
 
   if (vertical) {
+    verOffset = 1;
     if (fromRank - toRank > 0) {
-      offset = -1;
+      verOffset = -1;
     }
 
-    for (int i = fromRank + offset; i != toRank; i += offset) {
-      if (state->board[i][fromFile].type != EMPTY ||
-          state->board[i][fromFile].color != NONE) {
-        return 0;
-      }
+    Piece moveSquare = checkTileForPiece(state, fromRank, fromFile, verOffset, horOffset, toRank + verOffset, -1);
+    if (moveSquare.type != EMPTY) {
+      return 0;
     }
   } else {
+    horOffset = 1;
     if (fromFile - toFile > 0) {
-      offset = -1;
+      horOffset = -1;
     }
 
-    for (int i = fromFile + offset; i != toFile; i += offset) {
-      if (state->board[fromRank][i].type != EMPTY ||
-          state->board[fromRank][i].color != NONE) {
-        return 0;
-      }
+    Piece moveSquare = checkTileForPiece(state, fromRank, fromFile, verOffset, horOffset, -1, toFile + horOffset);
+    if (moveSquare.type != EMPTY) {
+      return 0;
     }
   }
   
@@ -334,13 +347,9 @@ int isLegalBishopMove(GameState *state, Move *move) {
     }
   }
 
-  for (int i = fromRank + rankOffset; i != toRank; i += rankOffset) {
-    for (int j = fromFile + fileOffset;;) {
-      if (state->board[i][j].type != EMPTY || state->board[i][j].color != NONE) {
-        return 0;
-      }
-      j += fileOffset;
-    }
+  Piece moveSquare = checkTileForPiece(state, fromRank, fromFile, rankOffset, fileOffset, toRank + rankOffset, toFile + fileOffset);
+  if (moveSquare.type != EMPTY) {
+    return 0;
   }
 
   return 1;
@@ -506,15 +515,33 @@ void displayBoard(GameState *state) {
   printf("\n");
 }
 
+void replayGame(char **moves, int gameLength) {
+  GameState state;
+  initializeBoard(&state);
+
+  for (int i = 0; i < gameLength; i++) {
+    makeMove(&state, moves[i]);
+  }
+
+  displayBoard(&state);
+}
+
+#define MAX_RECORD_SIZE 100
+
 int main(void) {
   GameState gameState;
   initializeTestBoard(&gameState);
   displayBoard(&gameState);
 
-  // no en passant, no castling, format is: e2e4 (square from, square to)
   char move[4];
+  char moves[MAX_RECORD_SIZE][4];
+  int gameLength = 0;
+
+  // no en passant, no castling, format is: e2e4 (square from, square to)
   while (scanf("%s", move) == 1) {
     if (makeMove(&gameState, move)) {
+      strcpy(moves[gameLength], move);
+      gameLength++;
       displayBoard(&gameState);
     }
     fflush(stdin);

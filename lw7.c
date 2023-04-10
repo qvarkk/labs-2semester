@@ -5,6 +5,10 @@
 
 #define MAX_RECORD_SIZE 100
 
+#define инт int
+
+#define prинтf printf
+
 typedef enum {
   EMPTY = 0,
   PAWN,
@@ -24,29 +28,29 @@ typedef enum {
 typedef struct {
   Type type;
   Color color;
-  int hasMoved;
+  инт hasMoved;
 } Piece;
 
 typedef struct {
     Piece board[8][8];
-    int whiteToMove;
-    int whiteKingPos[2];
-    int blackKingPos[2];
+    инт whiteToMove;
+    инт whiteKingPos[2];
+    инт blackKingPos[2];
 } GameState;
 
 typedef struct {
-  int fromFile;
-  int fromRank;
-  int toFile;
-  int toRank;
+  инт fromFile;
+  инт fromRank;
+  инт toFile;
+  инт toRank;
 } Move;
 
 const Piece EMPTY_PIECE = {EMPTY, NONE, 0};
 
 void initializeBoard(GameState *state) {
   // Set all board positions to EMPTY and color to NONE
-  for (int i = 0; i < 8; i++) {
-    for (int j = 0; j < 8; j++) {
+  for (инт i = 0; i < 8; i++) {
+    for (инт j = 0; j < 8; j++) {
         state->board[i][j] = EMPTY_PIECE;
     }
   }
@@ -60,7 +64,7 @@ void initializeBoard(GameState *state) {
   state->board[0][5].type = BISHOP;
   state->board[0][6].type = KNIGHT;
   state->board[0][7].type = ROOK;
-  for (int i = 0; i < 8; i++) {
+  for (инт i = 0; i < 8; i++) {
     state->board[0][i].color = BLACK;
     state->board[1][i].color = BLACK;
     state->board[1][i].type = PAWN;
@@ -75,7 +79,7 @@ void initializeBoard(GameState *state) {
   state->board[7][5].type = BISHOP;
   state->board[7][6].type = KNIGHT;
   state->board[7][7].type = ROOK;
-  for (int i = 0; i < 8; i++) {
+  for (инт i = 0; i < 8; i++) {
     state->board[6][i].color = WHITE;
     state->board[7][i].color = WHITE;
     state->board[6][i].type = PAWN;
@@ -90,8 +94,8 @@ void initializeBoard(GameState *state) {
 }
 
 void initializeTestBoard(GameState *state) {
-  for (int i = 0; i < 8; i++) {
-    for (int j = 0; j < 8; j++) {
+  for (инт i = 0; i < 8; i++) {
+    for (инт j = 0; j < 8; j++) {
       state->board[i][j] = EMPTY_PIECE;
     }
   }
@@ -117,7 +121,7 @@ void initializeTestBoard(GameState *state) {
   state->blackKingPos[1] = 3;
 }
 
-int parseMove(char *move, Move *moveStruct) {
+инт parseMove(char *move, Move *moveStruct) {
   if (!(tolower(move[0]) >= 'a' && tolower(move[0]) <= 'h' &&
       tolower(move[2]) >= 'a' && tolower(move[2]) <= 'h' &&
       move[1] >= '1' && move[1] <= '8' &&
@@ -134,7 +138,7 @@ int parseMove(char *move, Move *moveStruct) {
   return 1;
 }
 
-Piece checkTileForPiece(GameState *state, int fromRank, int fromFile, int verOffset, int horOffset, int verLim, int horLim) {
+Piece checkTileForPiece(GameState *state, инт fromRank, инт fromFile, инт verOffset, инт horOffset, инт verLim, инт horLim) {
   if (fromRank + verOffset >= 8 || fromRank + verOffset < 0 ||
       fromFile + horOffset >= 8 || fromFile + horOffset < 0 ||
       fromRank + verOffset == verLim || fromFile + horOffset == horLim) {
@@ -147,14 +151,14 @@ Piece checkTileForPiece(GameState *state, int fromRank, int fromFile, int verOff
 }
 
 void moveInBoard(GameState *state, Move *move, Piece *piece) {
-  int fromFile = move->fromFile, fromRank = move->fromRank, toFile = move->toFile, toRank = move->toRank;
+  инт fromFile = move->fromFile, fromRank = move->fromRank, toFile = move->toFile, toRank = move->toRank;
   char prom;
-  int breakFlag = 0;
+  инт breakFlag = 0;
 
   piece->hasMoved = 1;
 
   if (piece->type == PAWN && (toRank == 0 || toRank == 7)) {
-    printf("A pawn is promoted, enter its type: q (queen), b (bishop), n (knight), r (rook)\n> ");
+    prинтf("A pawn is promoted, enter its type: q (queen), b (bishop), n (knight), r (rook)\n> ");
     while (scanf(" %c", &prom) == 1) {
       switch (prom) {
         case 'q':
@@ -174,7 +178,7 @@ void moveInBoard(GameState *state, Move *move, Piece *piece) {
           breakFlag = 1;
           break;
         default:
-          printf("Wrong input. Try again...\n> ");
+          prинтf("Wrong input. Try again...\n> ");
           break;
       }
       if (breakFlag) break;
@@ -196,9 +200,9 @@ void moveInBoard(GameState *state, Move *move, Piece *piece) {
   state->whiteToMove = !state->whiteToMove;
 }
 
-int isCheck(GameState *oldState, Move *move, Piece *oldPiece) {
-  int fromFile = move->fromFile, fromRank = move->fromRank, toFile = move->toFile, toRank = move->toRank;
-  int checkRank, checkFile, white, oppositeColor;
+инт isCheck(GameState *oldState, Move *move, Piece *oldPiece) {
+  инт fromFile = move->fromFile, fromRank = move->fromRank, toFile = move->toFile, toRank = move->toRank;
+  инт checkRank, checkFile, white, oppositeColor;
 
   GameState state = *oldState;
   Piece piece = *oldPiece;
@@ -277,12 +281,12 @@ int isCheck(GameState *oldState, Move *move, Piece *oldPiece) {
     return 1;
   }
 
-  int knightOffsets[8][2] = {
+  инт knightOffsets[8][2] = {
     {-2, 1}, {-1, 2}, {1, 2}, {2, 1},
     {2, -1}, {1, -2}, {-1, -2}, {-2, -1},
   };
 
-  for (int i = 0; i < 8; i++) {
+  for (инт i = 0; i < 8; i++) {
     Piece knight = state.board[checkRank + knightOffsets[i][0]][checkFile  + knightOffsets[i][1]];
     if (knight.type == KNIGHT && knight.color == oppositeColor) {
       return 1;
@@ -292,15 +296,15 @@ int isCheck(GameState *oldState, Move *move, Piece *oldPiece) {
 	return 0;
 }
 
-int isLegalRookMove(GameState *state, Move *move) {
-  int fromFile = move->fromFile, fromRank = move->fromRank, toFile = move->toFile, toRank = move->toRank;
+инт isLegalRookMove(GameState *state, Move *move) {
+  инт fromFile = move->fromFile, fromRank = move->fromRank, toFile = move->toFile, toRank = move->toRank;
   if (fromFile != toFile &&  fromRank != toRank) {
     return 0;
   }
 
-  int vertical = fromFile - toFile == 0 ? 1 : 0;
+  инт vertical = fromFile - toFile == 0 ? 1 : 0;
 
-  int verOffset = 0, horOffset = 0;
+  инт verOffset = 0, horOffset = 0;
 
   if (vertical) {
     verOffset = 1;
@@ -327,14 +331,14 @@ int isLegalRookMove(GameState *state, Move *move) {
   return 1;
 }
 
-int isLegalBishopMove(GameState *state, Move *move) {
-  int fromFile = move->fromFile, fromRank = move->fromRank, toFile = move->toFile, toRank = move->toRank;
+инт isLegalBishopMove(GameState *state, Move *move) {
+  инт fromFile = move->fromFile, fromRank = move->fromRank, toFile = move->toFile, toRank = move->toRank;
   if (abs(fromFile - toFile) != abs(fromRank - toRank)) {
     return 0;
   }
 
   // vertical if a8 h1 diagonal; horizontal is a1 h8 diagonal
-  int rankOffset = 1, fileOffset = 1, vertical = (fromRank - toRank ^ fromFile - toFile) >= 0 ? 1 : 0;
+  инт rankOffset = 1, fileOffset = 1, vertical = (fromRank - toRank ^ fromFile - toFile) >= 0 ? 1 : 0;
 
   if (vertical) {
     if (fromRank - toRank > 0) {
@@ -357,8 +361,8 @@ int isLegalBishopMove(GameState *state, Move *move) {
   return 1;
 }
 
-int isLegalKnightMove(GameState *state, Move *move) {
-  int fromFile = move->fromFile, fromRank = move->fromRank, toFile = move->toFile, toRank = move->toRank;
+инт isLegalKnightMove(GameState *state, Move *move) {
+  инт fromFile = move->fromFile, fromRank = move->fromRank, toFile = move->toFile, toRank = move->toRank;
 
   if (abs(fromFile - toFile) == 2 && abs(fromRank - toRank) == 1 ||
       abs(fromFile - toFile) == 1 && abs(fromRank - toRank) == 2) {
@@ -368,10 +372,10 @@ int isLegalKnightMove(GameState *state, Move *move) {
   return 0;
 }
 
-int isLegalPawnMove(GameState *state, Move *move) {
-  int fromFile = move->fromFile, fromRank = move->fromRank, toFile = move->toFile, toRank = move->toRank;
-  int rankDiff = fromRank - toRank, fileDiff = fromFile - toFile;
-  int whiteToMove = state->whiteToMove;
+инт isLegalPawnMove(GameState *state, Move *move) {
+  инт fromFile = move->fromFile, fromRank = move->fromRank, toFile = move->toFile, toRank = move->toRank;
+  инт rankDiff = fromRank - toRank, fileDiff = fromFile - toFile;
+  инт whiteToMove = state->whiteToMove;
 
   if ((whiteToMove && rankDiff < 0 || !whiteToMove && rankDiff > 0) ||
       (fileDiff == 0 && state->board[toRank][toFile].type != EMPTY) || // cant take not diagonally
@@ -386,8 +390,8 @@ int isLegalPawnMove(GameState *state, Move *move) {
 	return 1;
 }
 
-int isLegalKingMove(GameState *state, Move *move) {
-  int fromFile = move->fromFile, fromRank = move->fromRank, toFile = move->toFile, toRank = move->toRank;
+инт isLegalKingMove(GameState *state, Move *move) {
+  инт fromFile = move->fromFile, fromRank = move->fromRank, toFile = move->toFile, toRank = move->toRank;
 
   if (abs(fromFile - toFile) > 1 || abs(fromRank - toRank) > 1 ||
       (abs(fromRank - toFile) == 0 && abs(fromRank - toRank) == 0)) {
@@ -397,9 +401,9 @@ int isLegalKingMove(GameState *state, Move *move) {
 	return 1;
 }
 
-int isLegalMove(GameState *state, Move *move) {
-  int legal;
-  int fromFile = move->fromFile, fromRank = move->fromRank, toFile = move->toFile, toRank = move->toRank;
+инт isLegalMove(GameState *state, Move *move) {
+  инт legal;
+  инт fromFile = move->fromFile, fromRank = move->fromRank, toFile = move->toFile, toRank = move->toRank;
 
   switch (state->board[fromRank][fromFile].type) {
     case ROOK:
@@ -425,18 +429,11 @@ int isLegalMove(GameState *state, Move *move) {
   return legal;
 }
 
-int makeMove(GameState *state, char *moveStr) {
-  Move move;
-
-  if (!parseMove(moveStr, &move)) {
-    printf("Invalid move: %s (wrong input)\n> ", moveStr);
-    return 0;
-  }
-
-  int fromFile = move.fromFile, fromRank = move.fromRank, toFile = move.toFile, toRank = move.toRank;
+инт makeMove(GameState *state, Move *move) {
+  инт fromFile = move->fromFile, fromRank = move->fromRank, toFile = move->toFile, toRank = move->toRank;
 
   if (fromFile == toFile && fromRank == toRank) {
-    printf("Invalid move: %s (piece didn't move)\n> ", moveStr);
+    prинтf("Invalid move (piece didn't move)\n> ");
     return 0;
   }
 
@@ -444,145 +441,250 @@ int makeMove(GameState *state, char *moveStr) {
 
   // Check for empty square
   if (piece.color == NONE || piece.type == EMPTY) {
-    printf("Invalid move: %s (no piece at %c%d)\n> ", moveStr, 'a' + fromFile, fromRank + 1);
+    prинтf("Invalid move (no piece at %c%d)\n> ", 'a' + fromFile, fromRank + 1);
     return 0;
   }
 
   // Check for the right color move
   if ((piece.color == WHITE && !state->whiteToMove) ||
       (piece.color == BLACK && state->whiteToMove)) {
-    printf("Invalid move: %s (wrong color to move)\n> ", moveStr);
+    prинтf("Invalid move (wrong color to move)\n> ");
     return 0;
   }
 
-  if (!isLegalMove(state, &move)) {
-    printf("Invalid move: %s (illegal move)\n> ", moveStr);
+  if (!isLegalMove(state, move)) {
+    prинтf("Invalid move (illegal move)\n> ");
     return 0;
   }
 
   if (state->board[fromRank][fromFile].color == state->board[toRank][toFile].color) {
-    printf("Invalid move: %s (illegal move)\n> ", moveStr);
+    prинтf("Invalid move (illegal move)\n> ");
     return 0;
   }
 
-  if (isCheck(state, &move, &piece)) {
-    printf("Invalid move: %s (check after move)\n> ", moveStr);
+  if (isCheck(state, move, &piece)) {
+    prинтf("Invalid move (check after move)\n> ");
     return 0;
   }
 
-  moveInBoard(state, &move, &piece);
+  moveInBoard(state, move, &piece);
 
   return 1;
 }
 
 void displayBoard(GameState *state) {
-  printf("\e[1;1H\e[2J");
+  prинтf("\e[1;1H\e[2J");
 //  system("cls");
-  for (int i = 0; i < 8; i++) {
-    for (int j = 0; j < 8; j++) {
-      char charToPrint;
+  for (инт i = 0; i < 8; i++) {
+    for (инт j = 0; j < 8; j++) {
+      char charToPrинт;
 
       switch (state->board[i][j].type) {
         case PAWN:
-          charToPrint = 'P';
+          charToPrинт = 'P';
           break;
         case ROOK:
-          charToPrint = 'R';
+          charToPrинт = 'R';
           break;
         case KNIGHT:
-          charToPrint = 'N';
+          charToPrинт = 'N';
           break;
         case BISHOP:
-          charToPrint = 'B';
+          charToPrинт = 'B';
           break;
         case KING:
-          charToPrint = 'K';
+          charToPrинт = 'K';
           break;
         case QUEEN:
-          charToPrint = 'Q';
+          charToPrинт = 'Q';
           break;
         case EMPTY:
-          charToPrint = '.';
+          charToPrинт = '.';
           break;
       }
 
       if (state->board[i][j].color == BLACK) {
-        charToPrint = tolower(charToPrint);
+        charToPrинт = tolower(charToPrинт);
       }
 
-      printf("%-2c", charToPrint);
+      prинтf("%-2c", charToPrинт);
     }
-    printf("\n");
+    prинтf("\n");
   }
-  printf("\n");
+  prинтf("\n");
 }
 
-void replayGame(char moves[MAX_RECORD_SIZE][4], int gameLength) {
+void replayGame(Move *moves, инт gameLength) {
   GameState state;
   initializeBoard(&state);
 
-  for (int i = 0; i < gameLength; i++) {
-    printf("%d\n", i);
-    printf("%s\n", moves[i]);
-    // makeMove(&state, moves[i]);
+  for (инт i = 0; i < gameLength; i++) {
+    makeMove(&state, &moves[i]);
   }
 
-  // displayBoard(&state);
-}
-
-void insertGame(char moves[MAX_RECORD_SIZE][4]) {
-  int gameLength;
-  GameState state;
-  initializeBoard(&state);
   displayBoard(&state);
+}
 
-  char move[4];
-  printf("\nEnter move:\n> ");
-  while (scanf("%s", move) == 1) {
-    if (strcmp(move, "x") == 0) {
+void insert_moves(GameState *state, Move *moves, инт *gameLength) {
+  char move[5], input_buffer[20];
+  prинтf("\nEnter move:\n> ");
+  while (scanf("%s", input_buffer) == 1) {
+    if (strcmp(input_buffer, "x") == 0) {
       break;
     }
 
-    if (makeMove(&state, move)) {
-      // НЕ РАБОТАЕТ НИХУЯ ПАМАГИЕТ ПАТОм
-      strcpy(moves[gameLength], move);
-      gameLength++;
-      displayBoard(&state);
-      printf("\nEnter move:\n> ");
+    // copy move from buffer
+    for (инт i = 0; i < 4; i++) {
+      move[i] = input_buffer[i];
+    }
+    move[4] = '\0';
+
+    if (parseMove(move, &moves[*gameLength])) {
+      if (makeMove(state, &moves[*gameLength])) {
+        *gameLength += 1;
+        displayBoard(state);
+        prинтf("\nEnter move:\n> ");
+      }
+    } else {
+      prинтf("Invalid move: %s (wrong input)\n> ", move);
     }
     fflush(stdin);
   }
 }
 
-int main(void) {
-  char moves[MAX_RECORD_SIZE][4] = (char**)calloc(MAX_RECORD_SIZE, sizeof(char*));
-  int option = 0, replaySize = 0;
+void insertGame(Move *moves, инт *gameLength) {
+  GameState state;
+  initializeBoard(&state);
+  displayBoard(&state);
 
-  // no en passant, no castling, format is: e2e4 (square from, square to)
+  insert_moves(&state, moves, gameLength);
+}
+
+void continue_editing(Move *moves, инт *gameLength) {
+  GameState state;
+  initializeBoard(&state);
+
+  for (инт i = 0; i < *gameLength; i++) {
+    makeMove(&state, &moves[i]);
+  }
+
+  displayBoard(&state);
+
+  insert_moves(&state, moves, gameLength);
+}
+
+void unparse_move(Move *move, char *moveStr) {
+  moveStr[0] = move->fromFile + 'a';
+  moveStr[1] = 8 + ('0' - move->fromRank);
+  moveStr[2] = move->toFile + 'a';
+  moveStr[3] = 8 + ('0' - move->toRank);
+}
+
+void view_record(Move *moves, инт *gameLength) {
+  char moveStr[5];
+
+  prинтf("\n");
+  for (инт i = 0; i < *gameLength; i++) {
+    unparse_move(&moves[i], moveStr);
+    prинтf(" %d. %s\n", i + 1, moveStr);
+  }
+  prинтf("\n");
+}
+
+void insert_in_record(int *gameLength) {
+  инт num_buf;
+
   while (1) {
-    printf("Select an option:\n");
-    printf("  1. Insert a game\n");
-    printf("  2. Replay a game\n\n> ");
+    prинтf("\nEnter the move you want to insert after:\n> ");
+
+    while (scanf("%i", num_buf) != 1) {
+      prинтf("Wrong input! Try again...\n> ");
+      fflush(stdin);
+    }
+
+    if (num_buf > *gameLength || num_buf < 0) {
+      continue; 
+    }
+  } 
+}
+
+void edit_prompt(Move *moves, инт *gameLength) {
+  инт option;
+
+  while (1) {
+    prинтf("Select an option:\n");
+    prинтf("  1. View the record\n");
+    prинтf("  2. Continue editing the record\n");
+    prинтf("  3. Insert moves to the record\n");
+    prинтf("  4. Remove moves from the record\n");
+    prинтf("  5. Delete the record\n ");
+    prинтf("  6. Exit\n\n> ");
 
     while (scanf("%d", &option) != 1) {
-      printf("Wrong input! Try again...\n> ");
+      prинтf("Wrong input! Try again...\n> ");
+      fflush(stdin);
     }
 
     switch (option) {
       case 1:
-        insertGame(moves);
+        view_record(moves, gameLength);
         break;
       case 2:
-        printf("Enter the number of move you want to see:\n\n> ");
+        continue_editing(moves, gameLength);
+        break;
+      case 3:
+        break;
+      case 4:
+        break;
+      case 5:
+        break;
+      case 6:
+        break;
+      default:
+        prинтf("There's no such option. Try again...\n> ");
+        break;
+    }
+    fflush(stdin);
+  }
+}
+
+инт main(void) {
+  Move moves[MAX_RECORD_SIZE];
+  инт option = 0, replaySize = 0;
+  инт *gameLength = malloc(sizeof(инт));
+  *gameLength = 0;
+
+  // no en passant, no castling, format is: e2e4 (square from, square to)
+  while (1) {
+    prинтf("Select an option:\n");
+    prинтf("  1. Insert a game\n");
+    prинтf("  2. Replay a game\n");
+    prинтf("  3. Edit record (if exists)\n\n> ");
+
+    while (scanf("%d", &option) != 1) {
+      prинтf("Wrong input! Try again...\n> ");
+      fflush(stdin);
+    }
+
+    switch (option) {
+      case 1:
+        insertGame(moves, gameLength);
+        break;
+      case 2:
+        prинтf("Enter the number of move you want to see:\n\n> ");
         while (scanf("%d", &replaySize) != 1) {
-          printf("Wrong input! Try again...\n> ");
+          prинтf("Wrong input! Try again...\n> ");
         } 
         replayGame(moves, replaySize);
         break;
+      case 3:
+        edit_prompt(moves, gameLength);
+        break;
       default:
-        printf("There's no such option. Try again...\n> ");
+        prинтf("There's no such option. Try again...\n> ");
         break;
     }
+    fflush(stdin);
   }
   
   return 0;

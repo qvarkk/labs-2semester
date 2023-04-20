@@ -635,6 +635,8 @@ void insert_in_record(Move *origMoves, int *gameLength) {
           origMoves[i] = moves[i];
         }
 
+        printf("Game was saved successfully!\n");
+
         exit_flag = 1;
         break;
       }
@@ -715,7 +717,8 @@ void remove_from_record(Move* origMoves, int *gameLength) {
     *gameLength -= 1;
 
     while (1) {
-      printf("Enter c to continue removing, x to finish removing, v to insert new moves or z to discard changes:\n> ");
+      view_record(moves, gameLength);
+      printf("\nEnter c to continue removing, x to finish removing, v to insert new moves or z to discard changes:\n> ");
 
       while (scanf("%s", option_buf) != 1) {
         printf("Wrong input! Try again...\n> ");
@@ -731,7 +734,7 @@ void remove_from_record(Move* origMoves, int *gameLength) {
         initializeBoard(&state);
         for (int i = 0; i < *gameLength; i++) {
           if (!makeMove(&state, &moves[i])) {
-            printf("Unable to save changes since the record has mistakes!\n");
+            printf("Unable to save changes since the record has illegal moves!\n");
             *gameLength = oldGamelength;
             return;
           }
@@ -741,12 +744,14 @@ void remove_from_record(Move* origMoves, int *gameLength) {
           origMoves[i] = moves[i];
         }
 
+        printf("Game was saved successfully!\n");
+
         exit_flag = 1;
         break;
       }
 
       if (option_buf[0] == 'z') {
-        printf("Discarding changes!\n");
+        printf("Discarding changes\n");
         *gameLength = oldGamelength;
 
         exit_flag = 1;
@@ -760,6 +765,115 @@ void remove_from_record(Move* origMoves, int *gameLength) {
     }
 
   } 
+}
+
+void save_data(Move *moves, int *gameLength) {
+  char filename[50], move[5];;
+
+  while (1) {
+    printf("Enter filename of the file with game:\n> ");
+    if (scanf("%s", filename) != 1) {
+      printf("Wrong input! Try again\n> ");
+      continue;
+    }
+    break;
+  }
+
+  FILE *fp;
+  fp = fopen(filename, "wb");
+
+  if (!fp) {
+    printf("\nThere's no such file!\n\n");
+    return;
+  }
+
+  for (int i = 0; i < *gameLength; i++) {
+    unparse_move(&moves[i], move);
+    fprintf(fp, "%s\n", move);
+  }
+
+  printf("\nThe game was saved succesfully!\n\n");
+
+  fclose(fp);
+}
+
+int load_data(Move *moves) {
+  int size_left = MAX_RECORD_SIZE;
+  int game_length = 0;
+  char filename[50];
+  char move_buffer[20], move[5];
+
+  while (1) {
+    printf("Enter filename of the file with game:\n> ");
+    if (scanf("%s", filename) != 1) {
+      printf("Wrong input! Try again\n> ");
+      continue;
+    }
+    break;
+  }
+
+  FILE *fp;
+  fp = fopen(filename, "r");
+
+  if (!fp) {
+    printf("\nThere's no such file!\n\n");
+    return 0;
+  }
+
+  while (!feof(fp) && size_left > 0) {
+    if (fscanf(fp, "%s", move_buffer) == 1) {
+      for (int i = 0; i < 4; i++) {
+        move[i] = move_buffer[i];
+      }
+      move[4] = '\0';
+
+      if (!parseMove(move, &moves[game_length])) {
+        return 0;
+      }
+
+      game_length++;
+      size_left--;
+    } else {
+      break;
+    }
+  }
+
+  GameState state;
+  initializeBoard(&state);
+  for (int i = 0; i < game_length; i++) {
+    if (!makeMove(&state, &moves[i])) {
+      printf("\nUnable to load game since it has illegal moves\n\n");
+      return 0;
+    }
+  }
+
+  printf("\nGame was recorded succesfully!\n\n");
+
+  fclose(fp);
+  return game_length;
+}
+
+void destroy_data() {
+  char filename[50];
+
+  while (1) {
+    printf("Enter filename of the file with game:\n> ");
+    if (scanf("%s", filename) != 1) {
+      printf("Wrong input! Try again\n> ");
+      continue;
+    }
+    break;
+  }
+
+  FILE *fp;
+  fp = fopen(filename, "r");
+
+  if (!fp) {
+    printf("\nThere's no such file!\n\n");
+    return 0;
+  }
+
+  // чет не допер че это значит             бубылда
 }
 
 void edit_prompt(Move *moves, int *gameLength) {
@@ -817,7 +931,11 @@ int main(void) {
     printf("Select an option:\n");
     printf("  1. Insert a game\n");
     printf("  2. Replay a game\n");
-    printf("  3. Edit record\n\n> ");
+    printf("  3. Edit record\n");
+    printf("  4. Load a game from a file\n");
+    printf("  5. Save the game to a file\n");
+    printf("  6. Clear a game file\n");
+    printf("  7. Exit\n\n> ");
 
     while (scanf("%d", &option) != 1) {
       printf("Wrong input! Try again...\n> ");
@@ -841,6 +959,19 @@ int main(void) {
         break;
       case 3:
         edit_prompt(moves, gameLength);
+        break;
+      case 4:
+        *gameLength = load_data(moves);
+        break;
+      case 5:
+        save_data(moves, gameLength);
+        break;
+      case 6:
+        destroy_data();
+        break;
+      case 7:
+        printf("\nSee you next time\n\n");
+        return 0;
         break;
       default:
         printf("There's no such option. Try again...\n> ");

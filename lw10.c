@@ -43,9 +43,9 @@ typedef struct {
 
 const Piece EMPTY_PIECE = {EMPTY, NONE, 0};
 
-int modify_memory(Move **moves, int *gameLength) {
+int modify_memory(Move **moves, int gameLength) {
 	Move *temp;
-	temp = realloc(*moves, (*gameLength + 1) * sizeof(temp[0]));
+	temp = realloc(*moves, (gameLength + 1) * sizeof(Move));
 	if (!temp) {
 		return 0;
 	}
@@ -53,9 +53,9 @@ int modify_memory(Move **moves, int *gameLength) {
 	return 1;
 }
 
-int free_memory(Move **moves) {
-	free(*moves);
-	*moves = NULL;
+int spare(Move *moves) {
+	free(moves);
+	moves = NULL;
 }
 
 void initializeBoard(GameState *state) {
@@ -557,7 +557,7 @@ Move *insert_moves(GameState *state, Move *moves, int *gameLength) {
     move[4] = '\0';
 	
     if (parseMove(move)) {
-      modify_memory(&moves, gameLength);
+      modify_memory(&moves, *gameLength);
       load_move(move, &moves[*gameLength]);
       if (makeMove(state, &moves[*gameLength])) {
         *gameLength += 1;
@@ -579,7 +579,7 @@ Move *insertGame(Move *moves, int *gameLength) {
   displayBoard(&state);
   *gameLength = 0;
 
-   return insert_moves(&state, moves, gameLength);
+  return insert_moves(&state, moves, gameLength);
 }
 
 Move *continue_editing(Move *moves, int *gameLength) {
@@ -620,7 +620,10 @@ Move *insert_in_record(Move *origMoves, int *gameLength) {
   Move *moves = NULL;
   int oldGamelength = *gameLength;
 
-  modify_memory(&moves, gameLength);
+  // modify_memory(&moves, *gameLength);
+  moves = malloc(*gameLength * sizeof(Move));
+  
+
   for (int i = 0; i < *gameLength; i++) {
     moves[i] = origMoves[i];
   }
@@ -652,28 +655,42 @@ Move *insert_in_record(Move *origMoves, int *gameLength) {
         for (int i = 0; i < *gameLength; i++) {
           if (!makeMove(&state, &moves[i])) {
             printf("Unable to save changes since the record has mistakes!\n");
-            *gameLength = oldGamelength;
-            free_memory(&moves);
-            return origMoves;
+            continue;
+
+            // ********************************************  DOUBLE POINTER **************************************************************
+            // ********************************************  DOUBLE POINTER **************************************************************
+            // ********************************************  DOUBLE POINTER **************************************************************
+            // ********************************************  DOUBLE POINTER **************************************************************
+            // ********************************************  DOUBLE POINTER **************************************************************
+            // ********************************************  DOUBLE POINTER **************************************************************
+            // ********************************************  DOUBLE POINTER **************************************************************
+            // ********************************************  DOUBLE POINTER **************************************************************
+            // ********************************************  DOUBLE POINTER **************************************************************
+            // ********************************************  DOUBLE POINTER **************************************************************
+
+            // *gameLength = oldGamelength;
+            // free(moves);
+            // return origMoves;
           }
         }
 
-        for (int i = 0; i < *gameLength; i++) {
-          origMoves[i] = moves[i];
-        }
-        free_memory(&moves);
+
+        // for (int i = 0; i < *gameLength; i++) {
+        //   origMoves[i] = moves[i];
+        // }
+        // free(moves);
 
         printf("Game was saved successfully!\n");
 
         exit_flag = 1;
-        break;
+        return moves;
       }
 
       if (move_buf[0] == 'z') {
         printf("Discarding changes!\n");
         *gameLength = oldGamelength;
 		
-		free_memory(&moves);
+		    free(moves);
         exit_flag = 1;
         return origMoves;
       }
@@ -688,7 +705,11 @@ Move *insert_in_record(Move *origMoves, int *gameLength) {
       	load_move(move_str, &move);
       	
       	*gameLength += 1;
-      	modify_memory(&moves, gameLength);
+      	// modify_memory(&moves, *gameLength);
+
+        Move *temp = NULL;
+        temp = realloc(moves, *gameLength * sizeof(Move));
+        moves = temp;
       	
         for (int i = *gameLength - 1; i >= num_buf; i--) {
           moves[i + 1] = moves[i];
@@ -703,8 +724,6 @@ Move *insert_in_record(Move *origMoves, int *gameLength) {
       }
     }
   }
-  
-  return moves;
 }
 
 Move *remove_from_record(Move* origMoves, int *gameLength) {
@@ -714,7 +733,7 @@ Move *remove_from_record(Move* origMoves, int *gameLength) {
   Move *moves = NULL;
   int oldGamelength = *gameLength;
 
-  modify_memory(&moves, gameLength);
+  modify_memory(&moves, *gameLength);
   for (int i = 0; i < *gameLength; i++) {
     moves[i] = origMoves[i];
   }
@@ -731,7 +750,7 @@ Move *remove_from_record(Move* origMoves, int *gameLength) {
       for (int i = 0; i < *gameLength; i++) {
         origMoves[i] = moves[i];
       }
-      free_memory(&moves);
+      free(moves);
       return origMoves;
     }
 
@@ -745,7 +764,7 @@ Move *remove_from_record(Move* origMoves, int *gameLength) {
     }
     
     *gameLength -= 1;
-    modify_memory(&moves, gameLength);
+    modify_memory(&moves, *gameLength);
 
     while (1) {
       view_record(moves, gameLength);
@@ -767,7 +786,7 @@ Move *remove_from_record(Move* origMoves, int *gameLength) {
           if (!makeMove(&state, &moves[i])) {
             printf("Unable to save changes since the record has illegal moves!\n");
             *gameLength = oldGamelength;
-            free_memory(&moves);
+            free(moves);
             return origMoves;
           }
         }
@@ -775,7 +794,7 @@ Move *remove_from_record(Move* origMoves, int *gameLength) {
         for (int i = 0; i < *gameLength; i++) {
           origMoves[i] = moves[i];
         }
-        free_memory(&moves);
+        free(moves);
 
         printf("Game was saved successfully!\n");
 
@@ -787,7 +806,7 @@ Move *remove_from_record(Move* origMoves, int *gameLength) {
         printf("Discarding changes\n");
         *gameLength = oldGamelength;
 
-		free_memory(&moves);
+        free(moves);
         exit_flag = 1;
         return origMoves;
       }
@@ -862,10 +881,11 @@ Move *load_data(Move *moves, int *gameLength) {
       move[4] = '\0';
 
       if (!parseMove(move)) {
-        return 0;
+        free(moves);
+        return NULL;
       }
 		
-	  modify_memory(&moves, &game_length);
+	  modify_memory(&moves, game_length);
 	  load_move(move, &moves[game_length]);
 	  
       game_length++;
@@ -879,6 +899,7 @@ Move *load_data(Move *moves, int *gameLength) {
   for (int i = 0; i < game_length; i++) {
     if (!makeMove(&state, &moves[i])) {
       printf("\nUnable to load game since it has illegal moves\n\n");
+      free(moves);
       return NULL;
     }
   }
@@ -980,7 +1001,7 @@ int main(void) {
         break;
       case 6:
         *gameLength = 0;
-        free_memory(&moves);
+        free(moves);
         break;
       case 7:
         printf("\nSee you next time\n\n");
